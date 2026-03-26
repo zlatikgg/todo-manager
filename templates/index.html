@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDo Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>📋 Менеджер задач</h1>
+
+    <!-- ===== Форма добавления ===== -->
+    <form class="add-form" action="{{ url_for('add') }}" method="POST">
+        <input type="text" name="title" placeholder="Что нужно сделать?" required>
+        <textarea name="description" placeholder="Описание (необязательно)"></textarea>
+        <div class="form-row">
+            <select name="priority">
+                <option value="low">🟢 Низкий</option>
+                <option value="medium" selected>🟡 Средний</option>
+                <option value="high">🔴 Высокий</option>
+            </select>
+            <button type="submit">＋ Добавить</button>
+        </div>
+    </form>
+
+    <!-- ===== Фильтры ===== -->
+    <div class="filters">
+        <a href="?filter=all" class="{% if current_filter == 'all' %}active{% endif %}">Все</a>
+        <a href="?filter=active" class="{% if current_filter == 'active' %}active{% endif %}">Активные</a>
+        <a href="?filter=completed" class="{% if current_filter == 'completed' %}active{% endif %}">Готовые</a>
+    </div>
+
+    <!-- ===== Список задач ===== -->
+    <div class="task-list">
+
+        {% for task in tasks %}
+        <div class="task-card {% if task.completed %}done{% endif %} priority-{{ task.priority }}">
+
+            <div class="task-header">
+                <a class="toggle" href="{{ url_for('toggle', task_id=task.id) }}">
+                    {% if task.completed %}✅{% else %}⬜{% endif %}
+                </a>
+                <span class="task-title">{{ task.title }}</span>
+                <span class="badge {{ task.priority }}">{{ task.priority | upper }}</span>
+            </div>
+
+            {% if task.description %}
+            <p class="task-desc">{{ task.description }}</p>
+            {% endif %}
+
+            <div class="task-footer">
+                <span class="date">{{ task.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                <a class="delete-btn" href="{{ url_for('delete', task_id=task.id) }}">🗑️ Удалить</a>
+            </div>
+
+            <details class="edit-details">
+                <summary>✏️ Редактировать</summary>
+                <form class="edit-form" action="{{ url_for('edit', task_id=task.id) }}" method="POST">
+                    <input type="text" name="title" value="{{ task.title }}" required>
+                    <textarea name="description">{{ task.description }}</textarea>
+                    <div class="form-row">
+                        <select name="priority">
+                            <option value="low" {% if task.priority == 'low' %}selected{% endif %}>🟢 Низкий</option>
+                            <option value="medium" {% if task.priority == 'medium' %}selected{% endif %}>🟡 Средний</option>
+                            <option value="high" {% if task.priority == 'high' %}selected{% endif %}>🔴 Высокий</option>
+                        </select>
+                        <button type="submit">💾 Сохранить</button>
+                    </div>
+                </form>
+            </details>
+
+        </div>
+        {% else %}
+        <p class="empty">Задач нет — самое время добавить первую! 🚀</p>
+        {% endfor %}
+
+    </div>
+</div>
+
+</body>
+</html>
